@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SplitEasy – share expenses</title>
+<style>
+:root{--bg:#fdf1e3;--ink:#1d1d22;--mu:#6d6a72;--surf:#fff;--bd:#eadccb;--pink:#ff9fb2;--lime:#e4f08a;--teal:#38c1ae;--lav:#bba9f7;--peach:#ffd3a6;--dark:#1d1d22;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17161b;--surf:#25232b;--bd:#35323d;--mu:#a29eab;--tx:#f1eef5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17161b;--surf:#25232b;--bd:#35323d;--mu:#a29eab;--tx:#f1eef5;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx,var(--ink));font:15px/1.4 "Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:430px;margin:0 auto;padding:18px 16px 110px;display:grid;gap:14px}
+.view{display:none;gap:14px}.view.on{display:grid}
+.top{display:flex;align-items:center;gap:12px}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:var(--ink);flex:none}
+.top h1{margin:0;font-size:18px}.top small{color:var(--mu)}
+.c{border-radius:28px;padding:18px;color:var(--ink)}
+.pink{background:var(--pink)}.lime{background:var(--lime)}.teal{background:var(--teal)}.lav{background:var(--lav)}.peach{background:var(--peach)}
+.s{background:var(--surf);border:1px solid var(--bd);color:var(--tx,var(--ink))}
+.c h2{margin:0 0 10px;font-size:17px}
+.big{font-size:44px;font-weight:800;line-height:1}
+.mu{opacity:.7;font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pill{display:inline-block;background:var(--dark);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:110px;margin-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;font-weight:700}
+.bar i{display:block;width:100%;max-width:34px;border-radius:14px;background:var(--dark);min-height:6px}
+.row{display:flex;align-items:center;gap:10px;background:#ffffff99;border-radius:20px;padding:10px 12px;margin-top:8px;color:var(--ink)}
+.row .g{flex:1;min-width:0}.row b{display:block}
+.rk{background:var(--dark);color:#fff;border-radius:14px;padding:2px 9px;font-weight:800;font-size:13px}
+input,select{font:inherit;color:var(--ink);background:#ffffffb3;border:0;border-radius:16px;padding:12px 14px;width:100%}
+button{font:inherit;border:0;border-radius:18px;padding:11px 16px;background:var(--dark);color:#fff;cursor:pointer;font-weight:800}
+button.o{background:#ffffff99;color:var(--ink)}button.x{background:none;color:var(--ink);padding:2px 8px;font-size:20px}
+.f{display:grid;gap:10px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:#ffffffb3;border-radius:20px;padding:6px 12px;font-weight:700}
+.chip input{width:auto;padding:0}.chip input[type=number]{width:76px;padding:4px 8px;border-radius:10px}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:12px 6px}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--dark);border-radius:30px;padding:8px;display:flex;gap:4px;box-shadow:0 8px 24px #0004}
+nav button{background:none;font-size:20px;padding:10px 18px;border-radius:22px;opacity:.6}nav button.on{background:var(--lime);color:var(--ink);opacity:1}
+.empty{text-align:center;opacity:.7;padding:8px}nav.off{display:none}
+</style></head><body>
+<main>
+<section class="view" id="v-login"><div class="c lav" style="margin-top:40px"><div class="big" style="font-size:34px">💸 SplitEasy</div><p>Enter your name to start. No password needed.</p><div class="f"><input id="ln" placeholder="Your name"><button onclick="doLogin()">Continue</button></div></div></section>
+<section class="view" id="v-groups"><div class="c lime"><h2>Your groups</h2><div id="gl"></div></div><div class="c peach"><h2>Create a group</h2><div class="f"><input id="gnm" placeholder="Trip to Goa, Flat 4B…"><button onclick="createG()">Create</button></div></div><div class="c pink"><h2>Join with a code</h2><div class="f"><input id="jc" placeholder="Invite code"><button onclick="joinG()">Join</button></div></div></section>
+<!-- HOME -->
+<section class="view" id="v-home">
+ <div class="top" onclick="db&&go('groups')" style="cursor:pointer"><div class="av" id="meav" style="background:var(--lav)">Y</div><div><h1 id="hi">Hi 👋</h1><small id="gn">Your group</small></div></div>
+ <div class="c pink"><div class="hero"><div><span class="pill" id="state">All settled</span><div class="big" id="net" style="margin-top:12px">0.00</div><div class="mu" id="netl">net balance</div></div>
+  <svg width="118" height="118" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke="#ffffff88" stroke-width="16"/><circle id="ring" cx="60" cy="60" r="48" fill="none" style="stroke:var(--dark)" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 302" transform="rotate(-90 60 60)"/><text id="rt" x="60" y="66" text-anchor="middle" font-size="20" font-weight="800" fill="#1d1d22">0%</text></svg></div>
+  <div class="mu" style="margin-top:6px">ring = your share of money paid</div></div>
+ <div class="g2"><div class="c lime"><div class="mu">Total spent</div><div class="big" style="font-size:30px;margin-top:6px" id="tot">0</div></div>
+  <div class="c lav"><div class="mu">Expenses</div><div class="big" style="font-size:30px;margin-top:6px" id="cnt">0</div></div></div>
+ <div class="c teal"><h2>Settle up</h2><div id="set"></div></div>
+</section>
+<!-- ADD -->
+<section class="view" id="v-add">
+ <div class="c peach"><h2>New expense</h2><div class="f">
+  <input id="ds" placeholder="What was it for? (Dinner, Rent…)">
+  <input id="am" type="number" step="0.01" min="0" placeholder="Amount">
+  <div class="two"><div><div class="mu">Paid by</div><select id="pb"></select></div><div><div class="mu">Split</div><div class="seg"><button id="bE" onclick="mode('eq')">Equal</button><button id="bX" class="o" onclick="mode('ex')">Exact</button></div></div></div>
+  <div class="chips" id="sp"></div>
+  <button onclick="addE()">Save expense</button></div></div>
+</section>
+<!-- GROUP -->
+<section class="view" id="v-group">
+ <div class="c teal"><h2>🏆 Top spenders</h2><div id="lb"></div></div>
+ <div class="c lime"><h2>Who paid what</h2><div class="bars" id="bars"></div></div>
+ <div class="c lav"><h2>People</h2><div class="mu" id="code"></div><div class="chips" id="members"></div>
+  <div class="two" style="margin-top:10px;grid-template-columns:1fr auto"><input id="nm" placeholder="Add a friend"><button onclick="addM()">Add</button></div></div>
+ <div class="c s"><h2>Balances</h2><div id="bal"></div></div>
+</section>
+<!-- ACTIVITY -->
+<section class="view" id="v-act">
+ <div class="c s"><h2>Activity</h2><div id="act"></div></div>
+ <button class="o" style="background:var(--surf);color:var(--tx,var(--ink));border:1px solid var(--bd)" onclick="reset()">Reset all data</button>
+</section>
+<!-- SETTINGS -->
+<section class="view" id="v-set">
+ <div class="top"><div class="av" style="background:var(--lime)">⚙️</div><div><h1>Settings</h1><small>Make it yours</small></div></div>
+ <div class="c lav"><h2>Theme</h2><div class="seg"><button data-t="auto" onclick="setTheme('auto')">Auto</button><button data-t="light" onclick="setTheme('light')">☀️ Light</button><button data-t="dark" onclick="setTheme('dark')">🌙 Dark</button></div><div class="mu" style="margin-top:8px">Auto follows your device setting.</div></div>
+ <div class="c peach"><h2>Account</h2><div class="mu" id="acct"></div><div class="two" style="margin-top:10px"><button onclick="db&&go('groups')">Groups</button><button class="o" onclick="logout()">Log out</button></div></div>
+ <div class="c s"><h2>Color palette</h2><div id="pal"></div></div>
+</section>
+</main>
+<nav class="off" id="nav"><button class="on" data-v="home" onclick="go('home')">🏠</button><button data-v="add" onclick="go('add')">➕</button><button data-v="group" onclick="go('group')">👥</button><button data-v="act" onclick="go('act')">🧾</button><button data-v="set" onclick="go('set')">⚙️</button></nav>
+<script>
+const K='spliteasy-v1',COL=['var(--lav)','var(--lime)','var(--pink)','var(--peach)','var(--teal)'];let S={m:[],e:[]},M='eq';
+try{const s=localStorage.getItem(K);if(s)S=JSON.parse(s)}catch(e){}
+const def=()=>[{id:1,n:'You'},{id:2,n:'Aarav'},{id:3,n:'Meera'}];if(!S.m.length)S.m=def();
+const $=i=>document.getElementById(i),c=n=>(Math.round(n)/100).toFixed(2),nm=id=>(S.m.find(x=>x.id==id)||{n:'?'}).n;
+const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const av=(id,i)=>`<div class="av" style="background:${COL[i%5]}">${esc(nm(id)[0]||'?').toUpperCase()}</div>`;
+function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id=='v-'+v));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v==v));scrollTo(0,0)}
+function save(){if(!G)try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}render()}
+function reset(){if(G)return alert('In a shared group, delete expenses one by one.');if(confirm('Clear all data?')){S={m:def(),e:[]};save()}}
+function addM(){const v=$('nm').value.trim();if(!v)return;$('nm').value='';if(G){const k='m'+Date.now();return db.doc('members/'+G+'_'+k).set({gid:G,gname:'',key:k,n:v,man:1})}S.m.push({id:Date.now(),n:v});save()}
+function delM(id){if(S.e.some(x=>x.p==id||x.sh[id]!=null))return alert('This person is part of an expense.');if(G){const m=S.m.find(x=>x.id==id);return db.doc('members/'+G+'_'+m.key).delete()}S.m=S.m.filter(x=>x.id!=id);save()}
+function mode(m){M=m;$('bE').className=m=='eq'?'':'o';$('bX').className=m=='ex'?'':'o';spl()}
+function spl(){$('sp').innerHTML=S.m.map(x=>`<label class="chip"><input type="checkbox" data-id="${x.id}" checked>${esc(x.n)}${M=='ex'?`<input type="number" step="0.01" min="0" data-ex="${x.id}" placeholder="0.00">`:''}</label>`).join('')}
+function addE(){
+ const d=$('ds').value.trim(),a=Math.round(parseFloat($('am').value)*100),p=+$('pb').value;
+ if(!d||!(a>0))return alert('Enter a description and amount.');
+ const ids=[...document.querySelectorAll('#sp input[type=checkbox]:checked')].map(i=>+i.dataset.id);
+ if(!ids.length)return alert('Pick who shares this.');
+ let sh={};
+ if(M=='eq'){const b=Math.floor(a/ids.length);let r=a-b*ids.length;ids.forEach(i=>{sh[i]=b+(r-->0?1:0)})}
+ else{let t=0;ids.forEach(i=>{const v=Math.round(parseFloat(document.querySelector(`[data-ex="${i}"]`).value||0)*100);sh[i]=v;t+=v});
+  if(t!==a)return alert(`Exact amounts add up to ${c(t)} but total is ${c(a)}.`)}
+ pushE({d,a,p,sh});
+ $('ds').value='';$('am').value='';save();go('home')}
+function settle(f,t,a){pushE({d:'Payment',a,p:f,sh:{[t]:a},pay:1})}
+function delE(id){if(G)return db.doc('expenses/'+id).delete();S.e=S.e.filter(x=>x.id!=id);save()}
+function bal(){const b={};S.m.forEach(x=>b[x.id]=0);S.e.forEach(x=>{b[x.p]=(b[x.p]||0)+x.a;for(const i in x.sh)b[i]=(b[i]||0)-x.sh[i]});return b}
+function plan(b){const cr=[],db=[];for(const i in b){if(b[i]>0)cr.push([+i,b[i]]);else if(b[i]<0)db.push([+i,-b[i]])}
+ cr.sort((x,y)=>y[1]-x[1]);db.sort((x,y)=>y[1]-x[1]);const o=[];let i=0,j=0;
+ while(i<cr.length&&j<db.length){const m=Math.min(cr[i][1],db[j][1]);o.push([db[j][0],cr[i][0],m]);cr[i][1]-=m;db[j][1]-=m;if(!cr[i][1])i++;if(!db[j][1])j++}return o}
+function render(){
+ const b=bal(),ex=S.e.filter(x=>!x.pay),tot=ex.reduce((s,x)=>s+x.a,0),my=b[ME]||0;
+ const paid={};S.m.forEach(x=>paid[x.id]=0);ex.forEach(x=>paid[x.p]=(paid[x.p]||0)+x.a);
+ const sg=S.m.map(x=>x.id+x.n).join();if(sg!=SIG){SIG=sg;$('pb').innerHTML=S.m.map(x=>`<option value="${x.id}">${esc(x.n)}</option>`).join('');$('pb').value=ME;spl()}
+ $('tot').textContent=c(tot);$('cnt').textContent=ex.length;
+ $('net').textContent=(my>0?'+':my<0?'−':'')+c(Math.abs(my));
+ $('state').textContent=my>0?'You are owed':my<0?'You owe':'All settled';
+ const pc=tot?Math.round((paid[ME]||0)/tot*100):0;$('ring').setAttribute('stroke-dasharray',`${302*pc/100} 302`);$('rt').textContent=pc+'%';
+ const p=plan(b);
+ $('set').innerHTML=p.length?p.map(([f,t,a])=>`<div class="row">${av(f,S.m.findIndex(x=>x.id==f))}<div class="g"><b>${esc(nm(f))} → ${esc(nm(t))}</b><span class="mu">${c(a)}</span></div><button onclick="settle(${f},${t},${a})">Settle</button></div>`).join(''):'<div class="empty">Everyone is settled up 🎉</div>';
+ const rk=[...S.m].sort((x,y)=>paid[y.id]-paid[x.id]);
+ $('lb').innerHTML=rk.map((x,i)=>`<div class="row"><span class="rk">#${i+1}</span>${av(x.id,S.m.indexOf(x))}<div class="g"><b>${esc(x.n)}</b></div><b>${c(paid[x.id])}</b></div>`).join('');
+ const mx=Math.max(1,...Object.values(paid));
+ $('bars').innerHTML=S.m.map(x=>`<div class="bar">${c(paid[x.id]).split('.')[0]}<i style="height:${Math.max(6,paid[x.id]/mx*80)}%"></i>${esc(x.n.slice(0,6))}</div>`).join('');
+ $('members').innerHTML=S.m.map(x=>`<span class="chip">${esc(x.n)}${x.id==ME||(G&&!x.man)?'':`<button class="x" onclick="delM(${x.id})">×</button>`}</span>`).join('');
+ $('bal').innerHTML=S.m.map((x,i)=>{const v=b[x.id]||0;return `<div class="row" style="background:var(--bg)">${av(x.id,i)}<div class="g"><b>${esc(x.n)}</b></div><span style="font-weight:800;color:${v>0?'#119c80':v<0?'#e8590c':'inherit'}">${v>0?'gets '+c(v):v<0?'owes '+c(-v):'settled'}</span></div>`}).join('');
+ $('act').innerHTML=S.e.length?S.e.map(x=>`<div class="row" style="background:var(--bg)"><div class="g"><b>${esc(x.d)}</b><span class="mu">${x.t} · ${x.pay?esc(nm(x.p))+' paid '+esc(nm(Object.keys(x.sh)[0])):esc(nm(x.p))+' paid, split '+Object.keys(x.sh).length+' ways'}</span></div><b>${c(x.a)}</b><button class="x" onclick="delE(${x.id})">×</button></div>`).join(''):'<div class="empty">No expenses yet. Tap ➕ to add one.</div>'}
+const PAL={candy:['Candy',['#ff9fb2','#e4f08a','#38c1ae','#bba9f7','#ffd3a6'],'#1d1d22'],ocean:['Ocean',['#8ecae6','#bde0fe','#2ec4b6','#a2b9ee','#cdeac0'],'#12344d'],sunset:['Sunset',['#ff8a65','#ffe082','#f4a261','#e5989b','#ffcdb2'],'#3b1f1a'],forest:['Forest',['#b7e4c7','#d8f3a2','#52b788','#95d5b2','#f1e3b3'],'#1b3a2b'],berry:['Berry',['#f48fb1','#e1bee7','#ba68c8','#9fa8da','#f8bbd0'],'#3a1c4a']};
+let P={t:'auto',p:'candy'};try{P=Object.assign(P,JSON.parse(localStorage.getItem('spliteasy-prefs')))}catch(e){}
+function applyP(){const r=document.documentElement,d=PAL[P.p]||PAL.candy;
+ if(P.t=='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',P.t);
+ ['pink','lime','teal','lav','peach'].forEach((k,i)=>r.style.setProperty('--'+k,d[1][i]));r.style.setProperty('--dark',d[2]);
+ document.querySelectorAll('[data-t]').forEach(b=>b.className=b.dataset.t==P.t?'':'o');
+ $('pal').innerHTML=Object.keys(PAL).map(k=>`<div class="row" style="background:var(--bg);cursor:pointer;outline:${k==P.p?'3px solid var(--dark)':'0'}" onclick="setPal('${k}')"><div class="g"><b>${PAL[k][0]}</b></div>${PAL[k][1].map(h=>`<i style="width:20px;height:20px;border-radius:50%;background:${h}"></i>`).join('')}</div>`).join('')}
+function savePrefs(){try{localStorage.setItem('spliteasy-prefs',JSON.stringify(P))}catch(e){}applyP()}
+function setTheme(t){P.t=t;savePrefs()}function setPal(p){P.p=p;savePrefs()}
+let db=null,US=null,G=null,ME=1,UID='',NAME='',MG=[],U=[],U2=[],SIG='',FIRST=1;
+const hs=s=>{let h=7;for(const k of s)h=(h*31+k.charCodeAt(0))%1e12;return h+2};
+const rc=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+const unsub=a=>{a.forEach(f=>f());a.length=0};
+function pushE(o){o.id=Date.now();o.t=new Date().toLocaleDateString();if(G){o.gid=G;o.by=NAME;db.doc('expenses/'+o.id).set(o).catch(()=>alert('Could not save. The page owner must share it with contribute access.'));return}S.e.unshift(o);save()}
+async function boot(){
+ try{NAME=JSON.parse(localStorage.getItem('spliteasy-me')).n}catch(e){}
+ try{db=await claude.use('db');US=await claude.use('user');UID=(US&&await US.id())||''}catch(e){db=null}
+ if(!UID)db=null;
+ NAME?enter():go('login')}
+function doLogin(){const v=$('ln').value.trim();if(!v)return;NAME=v;try{localStorage.setItem('spliteasy-me',JSON.stringify({n:v}))}catch(e){}enter()}
+function logout(){unsub(U);unsub(U2);G=null;NAME='';try{localStorage.removeItem('spliteasy-me')}catch(e){}$('nav').classList.add('off');go('login')}
+function enter(){
+ FIRST=1;$('hi').textContent='Hi, '+NAME+' 👋';$('meav').textContent=NAME[0].toUpperCase();$('acct').textContent='Logged in as '+NAME+(db?'':' (this device only, shared groups need a claude.ai sign-in)');
+ $('nav').classList.remove('off');
+ if(!db){G=null;ME=1;const m=S.m.find(x=>x.id==1);if(m)m.n=NAME;$('gn').textContent='Your group';render();return go('home')}
+ ME=hs(UID);unsub(U);unsub(U2);G=null;
+ U.push(db.collection('members').where('key','==',UID).onSnapshot(s=>{MG=s.docs.map(d=>d.data());
+  $('gl').innerHTML=MG.length?MG.map(m=>`<div class="row" onclick="openG('${m.gid}')" style="cursor:pointer"><div class="g"><b>${esc(m.gname)}</b><span class="mu">code ${m.gid}</span></div>›</div>`).join(''):'<div class="empty">No groups yet. Create one or join with a code.</div>';
+  let sg='';try{sg=localStorage.getItem('spliteasy-g')}catch(e){}
+  if(FIRST){FIRST=0;MG.some(m=>m.gid==sg)?openG(sg):go('groups')}}))}
+const jd=(id,n)=>db.doc('members/'+id+'_'+UID).set({gid:id,gname:n,key:UID,n:NAME});
+async function createG(){const n=$('gnm').value.trim();if(!n)return;try{const id=rc();await db.doc('groups/'+id).set({name:n});await jd(id,n);$('gnm').value='';openG(id,n)}catch(e){alert('Could not create group. The page owner must share it with contribute access.')}}
+async function joinG(){const id=$('jc').value.trim().toUpperCase();if(!id)return;try{const s=await db.doc('groups/'+id).get();if(!s.exists)return alert('No group with that code.');await jd(id,s.data().name);$('jc').value='';openG(id,s.data().name)}catch(e){alert('Could not join this group.')}}
+function openG(id,n){unsub(U2);G=id;S={m:[],e:[]};SIG='';try{localStorage.setItem('spliteasy-g',id)}catch(e){}
+ const gm=MG.find(m=>m.gid==id),gname=n||(gm?gm.gname:id);
+ $('gn').textContent=gname+' ▾';$('code').textContent='Invite code: '+id+' (share it so friends can join)';
+ jd(id,gname).catch(()=>{});
+ U2.push(db.collection('members').where('gid','==',id).onSnapshot(s=>{S.m=s.docs.map(d=>{const x=d.data();return{id:hs(x.key),key:x.key,n:x.n,man:x.man}});render()}));
+ U2.push(db.collection('expenses').where('gid','==',id).onSnapshot(s=>{S.e=s.docs.map(d=>d.data()).sort((a,b)=>b.id-a.id);render()}));
+ go('home')}
+applyP();
+render();
+boot();
+</script></body></html>
